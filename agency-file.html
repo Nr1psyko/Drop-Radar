@@ -1,0 +1,1486 @@
+<title>The Anthropic Agency File</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#0a0908;
+  --panel:#100e0c;
+  --card:#141210;
+  --card-2:#191613;
+  --rule:#2b2621;
+  --rule-soft:#211d19;
+  --ink:#ece5d8;
+  --ink-2:#b8afa0;
+  --mute:#7d7566;
+  --faint:#4b453c;
+  --amber:#f2b45c;
+  --amber-ink:#f6c67f;
+  --blue:#63c8ec;
+  --green:#5fd493;
+  --purple:#ab8ff5;
+  --red:#f5836c;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --step:clamp(13px,0.86vw,15px);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:var(--step);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(242,180,92,.25);color:var(--ink)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:3px}
+
+.page{max-width:1460px;margin:0 auto;padding:40px 26px 0}
+
+/* ---------- header ---------- */
+.eyebrow{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--mute);margin:0 0 18px;
+}
+h1{
+  font-size:clamp(26px,3.1vw,42px);line-height:1.16;font-weight:700;
+  margin:0 0 20px;text-wrap:balance;letter-spacing:-.01em;max-width:46ch;
+}
+h1 .em{color:var(--amber)}
+h1 .em-2{color:var(--amber-ink)}
+.deck{
+  color:var(--ink-2);max-width:78ch;margin:0 0 22px;font-size:14px;line-height:1.72;
+}
+.deck strong{color:var(--ink);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 26px}
+.chip{
+  border:1px solid var(--rule);border-radius:5px;padding:5px 11px;
+  font-size:12px;color:var(--ink-2);background:var(--card);
+}
+.chip .plus{color:var(--faint);margin-right:6px}
+
+/* ---------- stepper ---------- */
+.stepper{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 0 16px;margin-bottom:8px;
+  background:linear-gradient(var(--ground) 70%,rgba(10,9,8,0));
+}
+.step{
+  font-family:var(--mono);font-size:12.5px;
+  min-width:30px;height:30px;padding:0 8px;
+  border:1px solid var(--rule);border-radius:5px;
+  background:var(--card);color:var(--mute);cursor:pointer;
+  transition:color .14s,border-color .14s,background .14s;
+}
+.step:hover{color:var(--ink-2);border-color:var(--faint)}
+.step[aria-current="true"]{color:var(--amber);border-color:var(--amber);background:rgba(242,180,92,.08)}
+.step-hint{font-size:12px;color:var(--mute);margin-left:8px}
+.step-hint b{color:var(--ink-2);font-weight:400}
+
+/* ---------- panels ---------- */
+.panel{display:none;animation:rise .3s ease both}
+.panel[data-active="true"]{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .panel{animation:none}
+}
+
+.panel-note{
+  font-size:12.5px;color:var(--mute);border:1px solid var(--rule-soft);
+  border-radius:7px;padding:11px 14px;margin:0 0 16px;background:var(--panel);
+}
+.panel-note b{color:var(--ink-2);font-weight:400}
+
+/* ---------- cards ---------- */
+.card{
+  position:relative;overflow:hidden;
+  background:var(--card);border:1px solid var(--rule-soft);
+  border-radius:9px;padding:20px 22px 18px;
+  border-left:2px solid var(--rail,var(--rule));
+}
+.ghost{
+  position:absolute;right:16px;bottom:-16px;
+  font-size:84px;font-weight:700;line-height:1;
+  color:#fff;opacity:.045;pointer-events:none;user-select:none;
+}
+.card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tag{
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--tone,var(--rule));color:var(--tone,var(--mute));
+  border-radius:4px;padding:2px 7px;white-space:nowrap;
+}
+.tag-plain{
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);
+}
+.tag-right{
+  margin-left:auto;font-size:11px;border:1px solid var(--tone,var(--rule));
+  color:var(--tone,var(--mute));border-radius:4px;padding:2px 9px;white-space:nowrap;
+}
+h2{font-size:clamp(17px,1.5vw,21px);line-height:1.3;font-weight:700;margin:0 0 12px;text-wrap:balance}
+h3{font-size:16px;line-height:1.35;font-weight:700;margin:0 0 11px;text-wrap:balance}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.legend .chip{font-size:11.5px;padding:4px 9px}
+.legend .chip.hot{border-color:var(--amber);color:var(--amber)}
+.foot{
+  margin:14px 0 0;padding-top:12px;border-top:1px solid var(--rule-soft);
+  font-size:12px;color:var(--mute);text-align:center;
+}
+figcaption{font-size:12px;color:var(--mute);text-align:center;margin-top:10px}
+
+/* ---------- panel 1 : roster ---------- */
+.roster{display:grid;grid-template-columns:minmax(300px,0.78fr) minmax(420px,1.35fr);gap:34px;align-items:start}
+@media (max-width:1080px){.roster{grid-template-columns:1fr}}
+.sub-head{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);margin:0 0 14px;
+}
+.sub-head.dim{color:var(--mute)}
+.roster-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.roster-head .right{margin-left:auto;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{
+  display:grid;grid-template-columns:150px 82px minmax(90px,1fr) minmax(120px,1.5fr) 52px;
+  align-items:center;gap:12px;padding:3px 4px;border-radius:5px;
+  transition:background .14s;cursor:default;
+}
+.row:hover,.row[data-lit="true"]{background:var(--card-2)}
+.pill{
+  border:1px solid var(--rule);border-radius:5px;padding:4px 9px;
+  font-size:12.5px;color:var(--ink-2);text-align:center;
+  transition:border-color .14s,color .14s;
+}
+.row[data-key="true"] .pill{border-color:var(--amber);color:var(--amber-ink)}
+.row:hover .pill{border-color:var(--faint)}
+.row[data-key="true"]:hover .pill{border-color:var(--amber)}
+.model{font-size:12px;color:var(--tone)}
+.track{position:relative;height:16px}
+.track-line{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.track-dot{
+  position:absolute;top:50%;width:7px;height:7px;border-radius:50%;
+  background:var(--tone);transform:translate(-50%,-50%);
+  box-shadow:0 0 0 3px var(--card);
+}
+.track-label{
+  position:absolute;bottom:11px;font-size:10px;color:var(--faint);
+  white-space:nowrap;transform:translateX(-50%);
+}
+.bar-wrap{position:relative;height:11px;background:var(--card-2);border-radius:3px;overflow:hidden}
+.bar{height:100%;background:var(--tone);border-radius:0 3px 3px 0;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.money{font-size:12.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:760px){
+  .row{grid-template-columns:1fr 70px 46px;grid-template-areas:"a b e" "d d d";row-gap:6px}
+  .row .pill{grid-area:a}.row .model{grid-area:b}.row .money{grid-area:e}
+  .row .track{display:none}.row .bar-wrap{grid-area:d}
+}
+
+.totals{
+  display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px;
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--rule);
+}
+.totals .lab{font-size:16px;font-weight:700}
+.totals .lab-2{font-size:12.5px;color:var(--mute)}
+.totals .big{font-size:clamp(26px,2.6vw,34px);font-weight:700;color:var(--amber);text-align:right;line-height:1.1;font-variant-numeric:tabular-nums}
+.totals .big-2{font-size:12.5px;color:var(--mute);text-align:right}
+.share{
+  display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:14px;
+  font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);
+}
+.share .r{text-transform:none;letter-spacing:0;color:var(--mute);text-align:right}
+.share .r b{display:block;color:var(--ink-2);font-weight:400}
+
+.two-sentences{margin-top:26px;padding-top:22px;border-top:1px solid var(--rule-soft)}
+.sent-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+@media (max-width:700px){.sent-grid{grid-template-columns:1fr}}
+.sent{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  border-radius:7px;padding:16px 18px;
+}
+.sent .s{font-size:clamp(17px,2vw,23px);font-weight:700}
+.sent .n{margin-left:auto;font-size:11.5px;color:var(--mute)}
+.sent.true{border:1px solid var(--green);background:rgba(95,212,147,.06)}
+.sent.true .s{color:var(--green)}
+.sent.false{border:1px dashed var(--red);background:rgba(245,131,108,.05)}
+.sent.false .s{color:var(--red)}
+.sent.false .n{color:var(--red)}
+
+/* radial */
+.radial-wrap{display:flex;flex-direction:column;align-items:center}
+.radial{width:100%;max-width:460px;height:auto;overflow:visible}
+.arc{transition:opacity .18s,filter .18s;cursor:default}
+.radial[data-lit="true"] .arc:not([data-lit="true"]){opacity:.22}
+.rad-label{font-size:11.5px;fill:var(--mute)}
+.rad-label.on{fill:var(--tone)}
+
+/* ---------- panel 4 : the stack ---------- */
+.stack-grid{display:grid;grid-template-columns:minmax(380px,1.15fr) minmax(340px,1fr);gap:40px;align-items:start}
+@media (max-width:1080px){.stack-grid{grid-template-columns:1fr;gap:30px}}
+.srow{
+  display:grid;grid-template-columns:150px 112px minmax(120px,1fr) 56px;
+  align-items:center;gap:14px;padding:3px 4px;border-radius:5px;transition:background .14s;
+}
+.srow:hover{background:var(--card-2)}
+.srow[data-key="true"] .pill{border-color:var(--amber);color:var(--amber-ink)}
+.srow .sel{display:flex;flex-direction:column;gap:2px}
+.srow .sel small{font-size:9.5px;color:var(--faint);white-space:nowrap}
+@media (max-width:560px){
+  .srow{grid-template-columns:1fr 112px 56px;grid-template-areas:"a b d" "c c c";row-gap:6px}
+  .srow .pill{grid-area:a}.srow .sel{grid-area:b}.srow .money{grid-area:d}.srow .bar-wrap{grid-area:c}
+}
+
+/* ---------- panel 2 : the hour ---------- */
+.hour-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (max-width:900px){.hour-grid{grid-template-columns:1fr}}
+.hour-card .chain-chip{
+  display:inline-block;border:1px solid var(--tone,var(--rule));color:var(--tone,var(--mute));
+  border-radius:4px;padding:3px 9px;font-size:11.5px;margin-bottom:6px;
+}
+.diagram{width:100%;height:auto;display:block;margin:8px auto 2px;max-width:100%}
+.diagram text{font-family:var(--mono)}
+
+/* ---------- controls ---------- */
+.controls{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:16px 22px;margin:6px 0 22px;
+}
+.ctl label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
+.ctl .val{color:var(--amber);letter-spacing:0;text-transform:none;font-size:12.5px;float:right}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:3px;
+  background:var(--rule);border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--amber);cursor:pointer;border:2px solid var(--ground);
+}
+input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;background:var(--amber);
+  cursor:pointer;border:2px solid var(--ground);
+}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.preset{
+  font-family:var(--mono);font-size:12px;padding:6px 13px;
+  border:1px solid var(--rule);border-radius:5px;background:var(--card);
+  color:var(--ink-2);cursor:pointer;transition:border-color .14s,color .14s,background .14s;
+}
+.preset:hover{border-color:var(--faint);color:var(--ink)}
+.preset[aria-pressed="true"]{border-color:var(--amber);color:var(--amber);background:rgba(242,180,92,.08)}
+
+/* ---------- waterfall / stat ---------- */
+.wf{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.wf-row{display:grid;grid-template-columns:235px minmax(100px,1fr) 108px;align-items:center;gap:16px}
+@media (max-width:720px){.wf-row{grid-template-columns:130px 1fr 92px;gap:9px}}
+.wf-lab{font-size:12.5px;color:var(--ink-2)}
+.wf-lab small{display:block;color:var(--faint);font-size:10.5px}
+.wf-bar{height:13px;background:var(--card-2);border-radius:3px;overflow:hidden;position:relative}
+.wf-fill{height:100%;border-radius:0 3px 3px 0;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.wf-val{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--tone,var(--ink-2))}
+.wf-row.total{margin-top:6px;padding-top:12px;border-top:1px solid var(--rule)}
+.wf-row.total .wf-lab{color:var(--ink);font-weight:700;font-size:13.5px}
+.wf-row.total .wf-val{font-size:clamp(19px,2vw,25px);font-weight:700;color:var(--amber)}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:20px}
+.stat{border:1px solid var(--rule-soft);border-radius:7px;padding:14px 16px;background:var(--panel)}
+.stat .k{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.stat .v{font-size:clamp(20px,2.2vw,27px);font-weight:700;color:var(--tone,var(--ink));line-height:1.15;font-variant-numeric:tabular-nums}
+.stat .n{font-size:11.5px;color:var(--faint);margin-top:4px}
+
+/* ---------- tables ---------- */
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:440px}
+th{
+  text-align:left;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--mute);font-weight:400;padding:0 12px 9px 0;border-bottom:1px solid var(--rule);
+}
+td{padding:9px 12px 9px 0;border-bottom:1px solid var(--rule-soft);color:var(--ink-2)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0}
+tr:last-child td{border-bottom:none}
+select{
+  font-family:var(--mono);font-size:12px;background:var(--card-2);color:var(--ink-2);
+  border:1px solid var(--rule);border-radius:4px;padding:3px 6px;cursor:pointer;
+}
+select:hover{border-color:var(--faint)}
+select{width:100%;max-width:100%}
+
+@media (prefers-reduced-motion:reduce){
+  .bar,.wf-fill{transition:none}
+  *{scroll-behavior:auto}
+}
+
+/* ---------- file view ---------- */
+.file{
+  background:var(--panel);border:1px solid var(--rule-soft);border-radius:8px;
+  overflow:hidden;margin-top:4px;
+}
+.file-bar{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid var(--rule-soft);font-size:12px;color:var(--mute);
+}
+.file-bar .name{color:var(--amber)}
+.file-body{overflow-x:auto;padding:14px 0}
+.file pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.75}
+.ln{display:grid;grid-template-columns:44px 1fr;gap:0}
+.ln .n{color:#3a352e;text-align:right;padding-right:14px;user-select:none}
+.ln .t{white-space:pre;padding-right:20px}
+.c-cm{color:var(--faint)}
+.c-hd{color:var(--amber);font-weight:700}
+.c-ky{color:var(--blue)}
+.c-st{color:var(--green)}
+.c-hi{color:var(--purple)}
+.copy{
+  margin-left:auto;font-family:var(--mono);font-size:11.5px;padding:4px 11px;
+  border:1px solid var(--rule);border-radius:4px;background:var(--card);
+  color:var(--ink-2);cursor:pointer;transition:border-color .14s,color .14s;
+}
+.copy:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ---------- footer ---------- */
+.tail{
+  margin:44px 0 0;padding:20px 0 30px;border-top:1px solid var(--rule-soft);
+  display:flex;flex-wrap:wrap;gap:10px 20px;align-items:baseline;
+  font-size:13px;color:var(--mute);
+}
+.tail .lead{color:var(--ink-2)}
+.tail .lead b{color:var(--green);font-weight:400}
+.tail .lead i{color:var(--red);font-style:normal}
+.tail .fine{margin-left:auto;font-size:11px;color:var(--faint);text-align:right}
+</style>
+
+<div class="page">
+
+  <p class="eyebrow">Ten roles, priced honestly · rates from Anthropic's published API pricing, Aug 2026</p>
+
+  <h1>The Anthropic Agency File — <span class="em">10 roles from one file</span> · <span class="em-2">$0 in salaries, $76k/mo profit</span></h1>
+
+  <p class="deck">
+    Ten agency roles written into one file: strategist, copywriter, designer, account manager,
+    video scripter, media buyer, scout, SEO, analyst, and a gate. Nobody is hired, so salaries really
+    are zero. The tokens are not — about $80 a month. The $76k is ten clients at $8,000, which is
+    arithmetic the file does not perform for you.
+    <strong>Zero salaries is true. Zero costs is a different sentence.</strong>
+  </p>
+
+  <div class="chips">
+    <span class="chip"><span class="plus">+</span>10 roles for $80 a month</span>
+    <span class="chip"><span class="plus">+</span>Opus 5 on 2 of 10</span>
+    <span class="chip"><span class="plus">+</span>$0 salaries ≠ $0 costs</span>
+  </div>
+
+  <nav class="stepper" id="stepper" aria-label="Sections">
+    <button class="step" data-go="1" aria-current="true">1</button>
+    <button class="step" data-go="2">2</button>
+    <button class="step" data-go="3">3</button>
+    <button class="step" data-go="4">4</button>
+    <button class="step" data-go="5">5</button>
+    <button class="step" data-go="6">6</button>
+    <span class="step-hint" id="stepHint"><b>the roster</b> — the roster is nearly free · the profit line is arithmetic, not a forecast</span>
+  </nav>
+
+  <main>
+
+  <!-- ============ 1 · THE ROSTER ============ -->
+  <section class="panel" data-panel="1" data-active="true" aria-label="The roster">
+    <div class="card" style="--rail:var(--amber)">
+      <div class="card-head">
+        <span class="tag" style="--tone:var(--amber)">The roster</span>
+        <span class="tag-plain">Ten roles · one file</span>
+        <span class="tag-right" style="--tone:var(--amber)">$0 salaries · $80/mo</span>
+      </div>
+      <h2>Zero in salaries is true · zero in costs is not the same sentence</h2>
+      <div class="legend">
+        <span class="chip hot">amber rows are the two that decide</span>
+        <span class="chip">the dot speed is how often each runs</span>
+      </div>
+
+      <div class="roster">
+        <div class="radial-wrap">
+          <p class="sub-head">The hour · five blocks</p>
+          <figure style="margin:0;width:100%">
+            <svg class="radial" id="radial" viewBox="0 0 400 400" role="img"
+                 aria-label="A sixty-minute clock split into five twelve-minute blocks — brief, strategy, production, distribution, analytics — with the analytics block feeding back into the brief.">
+            </svg>
+            <figcaption>the analyst is the only one that writes back</figcaption>
+          </figure>
+        </div>
+
+        <div>
+          <div class="roster-head">
+            <p class="sub-head" style="margin:0">Ten roles, written not hired</p>
+            <span class="right">How often · $ / day</span>
+          </div>
+          <div class="rows" id="rosterRows"></div>
+
+          <div class="totals">
+            <div>
+              <div class="lab">all ten, per day</div>
+              <div class="lab-2">all ten, per month</div>
+            </div>
+            <div>
+              <div class="big" id="perDay">$2.62</div>
+              <div class="big-2" id="perMonth">about $80</div>
+            </div>
+          </div>
+
+          <div class="share">
+            <div id="opusShare">Opus 5 on 2 of 10 · 29% of the bill</div>
+            <div class="r"><b>strategist · the gate</b>the two places a wrong call costs a month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-sentences">
+        <p class="sub-head dim" style="margin:0">Two sentences that look alike</p>
+        <div class="sent-grid">
+          <div class="sent true"><span class="s">$0 in salaries</span><span class="n">true · ten roles, nobody hired</span></div>
+          <div class="sent false"><span class="s">$0 in costs</span><span class="n">$80/mo, before ad spend</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2 · THE HOUR ============ -->
+  <section class="panel" data-panel="2" aria-label="The hour, block by block">
+    <p class="panel-note">
+      <b>$76k/mo is ten clients at $8,000</b> — the file writes the work, it does not sign them ·
+      ad spend, your hours, fees and tax sit outside this
+    </p>
+    <div class="hour-grid" id="hourGrid"></div>
+  </section>
+
+  <!-- ============ 3 · THE MONEY ============ -->
+  <section class="panel" data-panel="3" aria-label="The money">
+    <div class="card" style="--rail:var(--amber)">
+      <div class="card-head">
+        <span class="tag" style="--tone:var(--amber)">The money</span>
+        <span class="tag-plain">Ten clients × $8,000</span>
+        <span class="tag-right" style="--tone:var(--amber)">arithmetic, not a forecast</span>
+      </div>
+      <h2>The $76k line is one multiplication and four things nobody subtracted</h2>
+      <div class="legend">
+        <span class="chip">move any number · the file only writes the $79 row</span>
+      </div>
+
+      <div class="controls" id="moneyControls"></div>
+      <div class="wf" id="waterfall"></div>
+      <div class="stat-row" id="moneyStats"></div>
+
+      <p class="foot">the file writes the work for the price of one row · every other line here is yours to spend, sign or owe</p>
+    </div>
+  </section>
+
+  <!-- ============ 4 · THE STACK ============ -->
+  <section class="panel" data-panel="4" aria-label="The stack">
+    <div class="card" style="--rail:var(--blue)">
+      <div class="card-head">
+        <span class="tag" style="--tone:var(--blue)">The stack</span>
+        <span class="tag-plain">Who gets the expensive model</span>
+        <span class="tag-right" style="--tone:var(--blue)">same work, three routings</span>
+      </div>
+      <h2>Opus on two rows of ten is twenty-nine percent of the bill</h2>
+      <div class="legend">
+        <span class="chip hot">amber rows are the two that decide</span>
+        <span class="chip">change any row · the total is recomputed from tokens, not typed in</span>
+      </div>
+
+      <div class="presets" id="stackPresets">
+        <button class="preset" data-preset="written" aria-pressed="true">as written</button>
+        <button class="preset" data-preset="opus">everything on Opus 5</button>
+        <button class="preset" data-preset="haiku">everything on Haiku 4.5</button>
+      </div>
+
+      <div class="stack-grid">
+        <div>
+          <p class="sub-head">Routing · $ per day</p>
+          <div class="rows" id="stackRows"></div>
+          <div class="totals">
+            <div>
+              <div class="lab">all ten, per month</div>
+              <div class="lab-2" id="stackDelta">as written</div>
+            </div>
+            <div>
+              <div class="big" id="stackMonth">$79</div>
+              <div class="big-2" id="stackDay">$2.62 a day</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="sub-head dim">Published rates · $ per million tokens</p>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Model</th><th class="num">Input</th><th class="num">Output</th><th class="num">Context</th></tr></thead>
+              <tbody id="rateTable"></tbody>
+            </table>
+          </div>
+          <p class="foot" style="text-align:left">
+            the analyst runs on the Batch API overnight — half price, no latency to trade away.
+            batch is the only discount on this page that costs nothing to take.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5 · THE HUNT ============ -->
+  <section class="panel" data-panel="5" aria-label="The hunt">
+    <div class="card" style="--rail:var(--red)">
+      <div class="card-head">
+        <span class="tag" style="--tone:var(--red)">The hunt</span>
+        <span class="tag-plain">400 → 12 → 3 → 1</span>
+        <span class="tag-right" style="--tone:var(--red)">the only one facing out</span>
+      </div>
+      <h2>The last number in the funnel is the one nobody's cold outreach actually hits</h2>
+      <div class="legend">
+        <span class="chip">the first three numbers are the machine's</span>
+        <span class="chip hot">the fourth is the offer's</span>
+      </div>
+
+      <div class="controls" id="huntControls"></div>
+      <div class="wf" id="huntFunnel"></div>
+      <div class="stat-row" id="huntStats"></div>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--rule-soft)">
+        <p class="sub-head dim" style="margin-bottom:12px">The same machine at three close rates</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>If replies convert at</th><th class="num">Clients / month</th>
+              <th class="num">Days to ten</th><th class="num">Letters per client</th>
+            </tr></thead>
+            <tbody id="scenarioTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="foot">the machine hunts at the same speed either way · only the first twelve minutes differ</p>
+    </div>
+  </section>
+
+  <!-- ============ 6 · THE FILE ============ -->
+  <section class="panel" data-panel="6" aria-label="The file">
+    <div class="card" style="--rail:var(--purple)">
+      <div class="card-head">
+        <span class="tag" style="--tone:var(--purple)">The file</span>
+        <span class="tag-plain">What actually goes in it</span>
+        <span class="tag-right" style="--tone:var(--purple)">three lines at the top</span>
+      </div>
+      <h2>One file, three lines at the top, ten roles under them</h2>
+      <div class="legend">
+        <span class="chip hot">lines 4–6 are the whole business</span>
+        <span class="chip">everything below them is scaffolding you can copy</span>
+      </div>
+
+      <div class="file">
+        <div class="file-bar">
+          <span class="name">BRIEF.md</span>
+          <span>· read by ten roles, once an hour</span>
+          <button class="copy" id="copyFile">copy the file</button>
+        </div>
+        <div class="file-body"><pre id="fileBody"></pre></div>
+      </div>
+
+      <p class="foot">
+        write lines 4–6 badly and the machine automates the wrong business, perfectly, thirty times ·
+        the clock is what stops that from being permanent
+      </p>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="tail">
+    <span class="lead"><b>$0 in salaries is true</b> — <i>$0 in costs is not</i></span>
+    <span class="fine">
+      not an Anthropic publication · token costs derived from published API rates, Aug 2026 ·
+      every dollar on this page is computed from the same model
+    </span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =======================================================================
+   ONE MODEL, ONE SOURCE OF DOLLARS
+   Every figure on this page is computed from the token volumes below and
+   Anthropic's published per-million-token rates. Nothing is typed in twice.
+   ======================================================================= */
+
+var RATES = {
+  opus:   { label:"Opus 5",     id:"claude-opus-5",   in:5, out:25, ctx:"1M",   tone:"var(--amber)", hex:"#f2b45c" },
+  sonnet: { label:"Sonnet 5",   id:"claude-sonnet-5", in:2, out:10, ctx:"1M",   tone:"var(--blue)",  hex:"#63c8ec" },
+  haiku:  { label:"Haiku 4.5",  id:"claude-haiku-4-5",in:1, out:5,  ctx:"200K", tone:"var(--green)", hex:"#5fd493" }
+};
+var BATCH_DISCOUNT = 0.5;   /* Batch API runs at half price */
+var DAYS = 30;
+
+/* inK / outK = thousands of tokens the role reads and writes per day */
+var ROLES = [
+  { name:"strategist",      tier:"opus",   inK:40,  outK:8,  block:1, runs:0.14, cadence:"once a week", key:true  },
+  { name:"QA critic",       tier:"opus",   inK:50,  outK:4,  block:-1,runs:6,    cadence:"every gate",  key:true  },
+  { name:"copywriter",      tier:"sonnet", inK:75,  outK:30, block:2, runs:24,   cadence:"constant"     },
+  { name:"designer",        tier:"sonnet", inK:50,  outK:20, block:2, runs:8,    cadence:"per artifact" },
+  { name:"account manager", tier:"sonnet", inK:100, outK:10, block:3, runs:12,   cadence:"per reply"    },
+  { name:"video scripter",  tier:"sonnet", inK:25,  outK:20, block:2, runs:4,    cadence:"per script"   },
+  { name:"media buyer",     tier:"haiku",  inK:50,  outK:20, block:3, runs:3,    cadence:"per campaign" },
+  { name:"scout",           tier:"haiku",  inK:100, outK:10, block:3, runs:48,   cadence:"always on"    },
+  { name:"SEO",             tier:"haiku",  inK:70,  outK:10, block:2, runs:1,    cadence:"nightly"      },
+  { name:"analyst",         tier:"haiku",  inK:200, outK:20, block:4, runs:1,    cadence:"overnight", batch:true }
+];
+
+var BLOCKS = [
+  { n:"0–12",  phase:"the brief",   card:"the root",    tone:"var(--purple)", hue:"#ab8ff5", runs:1  },
+  { n:"12–24", phase:"strategy",    card:"the offer",   tone:"var(--amber)",  hue:"#f2b45c", runs:0.14 },
+  { n:"24–36", phase:"production",  card:"the surface", tone:"var(--blue)",   hue:"#63c8ec", runs:24 },
+  { n:"36–48", phase:"distribution",card:"the hunt",    tone:"var(--green)",  hue:"#5fd493", runs:48 },
+  { n:"48–60", phase:"analytics",   card:"the clock",   tone:"var(--red)",    hue:"#f5836c", runs:1  }
+];
+
+function costPerDay(role, tierOverride){
+  var r = RATES[tierOverride || role.tier];
+  var c = (role.inK * r.in + role.outK * r.out) / 1000;
+  return role.batch ? c * BATCH_DISCOUNT : c;
+}
+function totalPerDay(overrides){
+  return ROLES.reduce(function(s,r){ return s + costPerDay(r, overrides && overrides[r.name]); }, 0);
+}
+function money(n, dp){
+  var d = dp === undefined ? 2 : dp;
+  return "$" + n.toLocaleString("en-US",{minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function el(tag, cls, html){
+  var e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* =======================================================================
+   PANEL 1 — the roster
+   ======================================================================= */
+
+/* frequency track position: log scale from "weekly" to "always on" */
+function trackPos(runs){
+  var lo = Math.log(0.1), hi = Math.log(60);
+  return Math.max(0.04, Math.min(0.96, (Math.log(runs) - lo) / (hi - lo)));
+}
+
+var maxCost = ROLES.reduce(function(m,r){ return Math.max(m, costPerDay(r)); }, 0);
+
+function buildRoster(){
+  var host = document.getElementById("rosterRows");
+  ROLES.forEach(function(role){
+    var rate = RATES[role.tier];
+    var cost = costPerDay(role);
+    var pos  = trackPos(role.runs) * 100;
+
+    var row = el("div","row");
+    row.style.setProperty("--tone", rate.tone);
+    if(role.key) row.setAttribute("data-key","true");
+    row.setAttribute("data-block", role.block);
+
+    row.appendChild(el("div","pill", role.name));
+    row.appendChild(el("div","model", rate.label + (role.batch ? " batch" : "")));
+
+    var track = el("div","track");
+    track.appendChild(el("div","track-line"));
+    var lab = el("div","track-label", role.cadence);
+    lab.style.left = Math.max(14, Math.min(86, pos)) + "%";
+    track.appendChild(lab);
+    var dot = el("div","track-dot");
+    dot.style.left = pos + "%";
+    track.appendChild(dot);
+    row.appendChild(track);
+
+    var wrap = el("div","bar-wrap");
+    var bar  = el("div","bar");
+    bar.style.width = (cost / maxCost * 100) + "%";
+    wrap.appendChild(bar);
+    row.appendChild(wrap);
+
+    row.appendChild(el("div","money", money(cost)));
+
+    row.addEventListener("mouseenter", function(){ lightBlock(role.block); });
+    row.addEventListener("mouseleave", function(){ lightBlock(null); });
+    host.appendChild(row);
+  });
+
+  var day = totalPerDay();
+  var opusDay = ROLES.filter(function(r){ return r.tier === "opus"; })
+                     .reduce(function(s,r){ return s + costPerDay(r); }, 0);
+  document.getElementById("perDay").textContent   = money(day);
+  document.getElementById("perMonth").textContent = "about " + money(day * DAYS, 0);
+  document.getElementById("opusShare").textContent =
+    "Opus 5 on 2 of 10 · " + Math.round(opusDay / day * 100) + "% of the bill";
+}
+
+/* ---------- the radial hour ---------- */
+var CX = 250, CY = 196, R_IN = 104, R_OUT = 150, R_LAB = 164;
+
+function polar(r, deg){
+  var a = (deg - 90) * Math.PI / 180;
+  return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+}
+function ringSeg(r0, r1, a0, a1){
+  var p0 = polar(r1,a0), p1 = polar(r1,a1), p2 = polar(r0,a1), p3 = polar(r0,a0);
+  var big = (a1 - a0) > 180 ? 1 : 0;
+  return "M"+p0[0].toFixed(2)+" "+p0[1].toFixed(2)+
+         "A"+r1+" "+r1+" 0 "+big+" 1 "+p1[0].toFixed(2)+" "+p1[1].toFixed(2)+
+         "L"+p2[0].toFixed(2)+" "+p2[1].toFixed(2)+
+         "A"+r0+" "+r0+" 0 "+big+" 0 "+p3[0].toFixed(2)+" "+p3[1].toFixed(2)+"Z";
+}
+function svgEl(tag, attrs){
+  var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for(var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+var radialDots = [], radialHand = null;
+
+function buildRadial(){
+  var svg = document.getElementById("radial");
+  svg.setAttribute("viewBox","0 0 500 430");
+
+  var defs = svgEl("defs");
+  var mk = svgEl("marker",{id:"fb-arrow",viewBox:"0 0 8 8",refX:"6",refY:"4",
+                           markerWidth:"5",markerHeight:"5",orient:"auto"});
+  mk.appendChild(svgEl("path",{d:"M0 0 L8 4 L0 8 Z", fill:"#f5836c"}));
+  defs.appendChild(mk);
+  svg.appendChild(defs);
+
+  /* five blocks, four three-minute segments each */
+  BLOCKS.forEach(function(b, i){
+    var g = svgEl("g",{class:"arc","data-block":i});
+    for(var s = 0; s < 4; s++){
+      var a0 = i*72 + s*18 + 1.1, a1 = i*72 + (s+1)*18 - 1.1;
+      g.appendChild(svgEl("path",{
+        d: ringSeg(R_IN, R_OUT, a0, a1),
+        fill: b.hue, "fill-opacity": 0.30 + s*0.10,
+        stroke: b.hue, "stroke-opacity": 0.8, "stroke-width": 1
+      }));
+    }
+    svg.appendChild(g);
+  });
+
+  /* labels — range over phase, so neither line runs out of the box */
+  var anchors = ["start","start","middle","end","end"];
+  var dys     = [0, 0, 14, 0, 0];
+  BLOCKS.forEach(function(b, i){
+    var mid = i*72 + 36, p = polar(R_LAB, mid);
+    [b.n, b.phase].forEach(function(txt, k){
+      var t = svgEl("text",{
+        x: p[0].toFixed(1), y: (p[1] + dys[i] + k*14).toFixed(1),
+        "text-anchor": anchors[i], class:"rad-label", "data-block": i,
+        fill: b.hue, "fill-opacity": k === 0 ? 0.9 : 0.6, "font-size": k === 0 ? "12" : "12.5"
+      });
+      t.textContent = txt;
+      svg.appendChild(t);
+    });
+  });
+
+  /* feedback: analytics writes one line back into the brief */
+  var from = polar(R_OUT + 8, 336), to = polar(R_OUT + 6, 24);
+  svg.appendChild(svgEl("path",{
+    d: "M"+from[0].toFixed(1)+" "+from[1].toFixed(1)+
+       " C "+(CX-70)+" "+(CY-190)+", "+(CX+80)+" "+(CY-192)+", "+to[0].toFixed(1)+" "+to[1].toFixed(1),
+    fill:"none", stroke:"#f5836c", "stroke-opacity":0.6, "stroke-width":1.4,
+    "marker-end":"url(#fb-arrow)"
+  }));
+
+  /* sweep hand — drawn under the centre type */
+  radialHand = svgEl("line",{x1:CX, y1:CY, x2:CX, y2:CY-(R_IN-10),
+                             stroke:"#f2b45c","stroke-opacity":0.3,"stroke-width":1.6,
+                             "stroke-linecap":"round"});
+  svg.appendChild(radialHand);
+  svg.appendChild(svgEl("circle",{cx:CX, cy:CY, r:2.5, fill:"#f2b45c"}));
+
+  /* centre */
+  var c1 = svgEl("text",{x:CX, y:CY-2, "text-anchor":"middle", fill:"#ece5d8",
+                         "font-size":"26","font-weight":"700","font-family":"var(--mono)"});
+  c1.textContent = "BRIEF.md";
+  var c2 = svgEl("text",{x:CX, y:CY+22, "text-anchor":"middle", fill:"#7d7566",
+                         "font-size":"12.5","font-family":"var(--mono)"});
+  c2.textContent = "10 roles read it";
+  var c3 = svgEl("text",{x:CX, y:CY+43, "text-anchor":"middle", fill:"#f2b45c",
+                         "font-size":"13.5","font-family":"var(--mono)"});
+  c3.textContent = "$" + Math.round(totalPerDay() * DAYS) + " a month";
+  svg.appendChild(c1); svg.appendChild(c2); svg.appendChild(c3);
+
+  /* one travelling dot per block — speed is how often the block runs */
+  BLOCKS.forEach(function(b, i){
+    var d = svgEl("circle",{cx:CX, cy:CY, r:4.5, fill:b.hue});
+    svg.appendChild(d);
+    radialDots.push({ node:d, block:i, speed: 4 + 5 * Math.log10(1 + b.runs * 8) });
+  });
+
+  if(reduceMotion){
+    radialDots.forEach(function(d){
+      var p = polar((R_IN + R_OUT)/2, d.block*72 + 36);
+      d.node.setAttribute("cx", p[0].toFixed(1));
+      d.node.setAttribute("cy", p[1].toFixed(1));
+    });
+  } else {
+    requestAnimationFrame(tickRadial);
+  }
+}
+
+function tickRadial(ts){
+  var t = ts / 1000;
+  radialHand.setAttribute("transform","rotate("+((t * 6) % 360).toFixed(2)+" "+CX+" "+CY+")");
+  radialDots.forEach(function(d){
+    var within = (t * d.speed) % 72;
+    var p = polar((R_IN + R_OUT)/2, d.block * 72 + within);
+    d.node.setAttribute("cx", p[0].toFixed(2));
+    d.node.setAttribute("cy", p[1].toFixed(2));
+  });
+  requestAnimationFrame(tickRadial);
+}
+
+/* hovering a role lights its block; the gate (-1) lights all of them */
+function lightBlock(b){
+  var svg = document.getElementById("radial");
+  if(!svg) return;
+  var arcs = svg.querySelectorAll(".arc"), labs = svg.querySelectorAll(".rad-label");
+  if(b === null || b === -1){
+    svg.removeAttribute("data-lit");
+    Array.prototype.forEach.call(arcs, function(a){ a.removeAttribute("data-lit"); });
+    Array.prototype.forEach.call(labs, function(l){ l.setAttribute("fill-opacity", b === -1 ? 1 : 0.85); });
+    return;
+  }
+  svg.setAttribute("data-lit","true");
+  Array.prototype.forEach.call(arcs, function(a){
+    if(+a.getAttribute("data-block") === b) a.setAttribute("data-lit","true");
+    else a.removeAttribute("data-lit");
+  });
+  Array.prototype.forEach.call(labs, function(l){
+    l.setAttribute("fill-opacity", (+l.getAttribute("data-block") === b) ? 1 : 0.28);
+  });
+}
+
+/* =======================================================================
+   PANEL 2 — the hour, block by block
+   A small node-chain renderer: columns of boxes, a junction dot between
+   each pair of columns, and labelled edges. Same grid for every card.
+   ======================================================================= */
+
+var TONE = {
+  purple:"#ab8ff5", amber:"#f2b45c", blue:"#63c8ec",
+  green:"#5fd493", red:"#f5836c", mute:"#7d7566"
+};
+var LINK = "#3d372f";
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function nodeH(n){ return 22 + (n.lines.length - 1) * 13; }
+
+function drawNode(n, x, y, w){
+  var h = nodeH(n), t = TONE[n.tone] || TONE.mute, out = "";
+  out += '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="4.5" '+
+         'fill="'+t+'" fill-opacity="0.07" stroke="'+t+'" stroke-opacity="0.55" stroke-width="1"'+
+         (n.dashed ? ' stroke-dasharray="4 3"' : '') + '/>';
+  var lines = n.lines, first = y + h/2 - (lines.length - 1) * 6.5 + 4;
+  lines.forEach(function(ln, i){
+    var fill = i === 0 ? t : "#8c8474";
+    var size = i === 0 ? 11.5 : 10;
+    if(n.value !== undefined && i === 0){
+      out += '<text x="'+(x+10)+'" y="'+(first + i*13)+'" font-size="'+size+'" fill="'+fill+'">'+esc(ln)+'</text>';
+      out += '<text x="'+(x+w-10)+'" y="'+(first + i*13)+'" font-size="'+size+'" text-anchor="end" fill="'+t+'" font-weight="700">'+esc(n.value)+'</text>';
+    } else {
+      out += '<text x="'+(x+w/2)+'" y="'+(first + i*13)+'" font-size="'+size+'" text-anchor="middle" fill="'+fill+'">'+esc(ln)+'</text>';
+    }
+  });
+  return out;
+}
+
+function layoutColumn(col, H){
+  var gap = 8;
+  var total = col.nodes.reduce(function(s,n){ return s + nodeH(n); }, 0) + gap * (col.nodes.length - 1);
+  var y = (H - total) / 2, placed = [];
+  col.nodes.forEach(function(n){
+    var h = nodeH(n);
+    placed.push({ n:n, x:col.x, y:y, w:col.w, h:h, cy:y + h/2 });
+    y += h + gap;
+  });
+  return placed;
+}
+
+function chainSVG(spec){
+  var W = spec.w, H = spec.h;
+  var cols = spec.cols.map(function(c){ return layoutColumn(c, H); });
+  var out = '<svg class="diagram" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(spec.alt)+'">';
+
+  for(var i = 0; i < cols.length - 1; i++){
+    var A = cols[i], B = cols[i+1];
+    var ax = A[0].x + A[0].w, bx = B[0].x;
+    var jx = (ax + bx) / 2;
+
+    if(spec.pair && A.length === B.length){
+      A.forEach(function(a, k){
+        var b = B[k], d = (b.x - ax) * 0.45;
+        out += '<path d="M'+ax+' '+a.cy.toFixed(1)+' C'+(ax+d)+' '+a.cy.toFixed(1)+
+               ', '+(b.x-d)+' '+b.cy.toFixed(1)+', '+b.x+' '+b.cy.toFixed(1)+'" fill="none" stroke="'+
+               (TONE[b.n.tone]||LINK)+'" stroke-opacity="0.4" stroke-width="1.2"'+
+               (b.n.dashed ? ' stroke-dasharray="4 3"' : '') + '/>';
+        out += '<circle cx="'+jx.toFixed(1)+'" cy="'+((a.cy+b.cy)/2).toFixed(1)+'" r="2.6" fill="'+(TONE[b.n.tone]||LINK)+'" fill-opacity="0.85"/>';
+      });
+    } else {
+      var jy = H / 2, dd = (jx - ax) * 0.6;
+      A.forEach(function(a){
+        out += '<path d="M'+ax+' '+a.cy.toFixed(1)+' C'+(ax+dd)+' '+a.cy.toFixed(1)+
+               ', '+(jx-dd)+' '+jy+', '+jx.toFixed(1)+' '+jy+'" fill="none" stroke="'+LINK+'" stroke-width="1.2"/>';
+      });
+      B.forEach(function(b){
+        out += '<path d="M'+jx.toFixed(1)+' '+jy+' C'+(jx+dd)+' '+jy+
+               ', '+(b.x-dd)+' '+b.cy.toFixed(1)+', '+b.x+' '+b.cy.toFixed(1)+'" fill="none" stroke="'+LINK+'" stroke-width="1.2"/>';
+      });
+      out += '<circle cx="'+jx.toFixed(1)+'" cy="'+jy+'" r="3" fill="'+TONE.amber+'" fill-opacity="0.75"/>';
+    }
+  }
+
+  cols.forEach(function(col){
+    col.forEach(function(p){ out += drawNode(p.n, p.x, p.y, p.w); });
+  });
+  if(spec.extra) out += spec.extra;
+  out += '</svg>';
+  return out;
+}
+
+function barsHTML(rows){
+  var max = rows.reduce(function(m,r){ return Math.max(m, r.v); }, 0);
+  var out = '<div class="wf" style="margin:12px 0 2px">';
+  rows.forEach(function(r){
+    var pct = Math.max(1.2, r.v / max * 100);
+    out += '<div class="wf-row" style="grid-template-columns:112px 1fr 34px;--tone:'+TONE[r.tone]+'">'+
+             '<div class="wf-lab" style="font-size:11.5px'+(r.tone==="amber"?";color:"+TONE.amber:"")+'">'+esc(r.k)+'</div>'+
+             '<div class="wf-bar" style="height:11px'+
+               (r.outline ? ";background:transparent;border:1px dashed "+TONE[r.tone] : "") + '">'+
+               '<div class="wf-fill" style="width:'+pct.toFixed(2)+'%;background:'+TONE[r.tone]+
+                 (r.outline ? ";opacity:.9" : "") + '"></div>'+
+             '</div>'+
+             '<div class="wf-val" style="font-size:11.5px;color:'+TONE[r.tone]+'">'+r.v+'</div>'+
+           '</div>';
+  });
+  return out + '</div>';
+}
+
+function hourCards(){
+  var perDay = money(totalPerDay());
+
+  var loopLabel =
+    '<path d="M420 120 C420 158, 115 160, 115 141" fill="none" stroke="'+TONE.green+
+    '" stroke-opacity="0.5" stroke-width="1.3" marker-end="url(#loop-arrow)"/>'+
+    '<defs><marker id="loop-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">'+
+    '<path d="M0 0 L8 4 L0 8 Z" fill="'+TONE.green+'"/></marker></defs>'+
+    '<text x="264" y="178" font-size="10" text-anchor="middle" fill="'+TONE.green+'" fill-opacity="0.8">'+
+    'tomorrow the hunt scores 400 against a narrower filter</text>';
+
+  return [
+  {
+    span:"0–12", label:"The root", tone:"purple",
+    right:"3 lines, 1 hour, 30 days",
+    h3:"Three lines written once, read 30 days in a row",
+    chain:"the chain: 3 lines → 4 blocks → every morning after",
+    body: chainSVG({
+      w:520, h:196, alt:"Three lines you write feed four automated blocks, which re-read those same lines every morning for thirty days.",
+      cols:[
+        { x:8,   w:104, nodes:[{ lines:["YOU","3 lines"], tone:"purple" }] },
+        { x:190, w:172, nodes:[
+            { lines:["offer · Opus 5"],        tone:"amber" },
+            { lines:["surface · Sonnet ×3"],   tone:"blue"  },
+            { lines:["hunt · Haiku + Sonnet"], tone:"red"   },
+            { lines:["clock · Haiku batch"],   tone:"green" }
+        ]},
+        { x:412, w:104, nodes:[{ lines:["read again","30 mornings"], tone:"amber" }] }
+      ]
+    }),
+    foot:"write them badly and the machine automates the wrong business, perfectly, thirty times"
+  },
+  {
+    span:"12–24", label:"The offer", tone:"amber",
+    right:"Opus 5 · one call",
+    h3:"One page, one call, and every later block quotes it",
+    chain:"the chain: 3 lines → 1 page → 3 blocks reuse it",
+    body: chainSVG({
+      w:520, h:170, alt:"Three lines become one page written by a single Opus 5 call, which the landing copy, outreach letters and auto-replies all quote.",
+      cols:[
+        { x:8,   w:92,  nodes:[{ lines:["3 lines"], tone:"mute" }] },
+        { x:176, w:132, nodes:[{ lines:["Opus 5","1 call a day"], tone:"amber" }] },
+        { x:368, w:144, nodes:[
+            { lines:["the landing copy"],     tone:"blue" },
+            { lines:["the outreach letters"], tone:"blue" },
+            { lines:["the auto-replies"],     tone:"blue" }
+        ]}
+      ]
+    }),
+    foot:"the priciest model on the stack runs once and is quoted by everything downstream"
+  },
+  {
+    span:"24–36", label:"The surface", tone:"blue",
+    right:"Sonnet 5 ×3",
+    h3:"Four files, twelve minutes, three branches at once",
+    chain:"the chain: 1 page → 3 parallel writers → 4 artifacts",
+    body: chainSVG({
+      w:520, h:170, alt:"One page fans out to three parallel Sonnet 5 writers, which converge on four shipped files including the payment link.",
+      cols:[
+        { x:8,   w:96,  nodes:[{ lines:["the page"], tone:"mute" }] },
+        { x:180, w:112, nodes:[
+            { lines:["Sonnet A"], tone:"blue" },
+            { lines:["Sonnet B"], tone:"blue" },
+            { lines:["Sonnet C"], tone:"blue" }
+        ]},
+        { x:368, w:144, nodes:[{ lines:["landing · payment","replies · analytics","4 files"], tone:"blue" }] }
+      ]
+    }),
+    foot:"the payment link is what most launches are still missing on day thirty"
+  },
+  {
+    span:"36–48", label:"The hunt", tone:"red",
+    right:"the only one facing out",
+    h3:"400 scored, 12 written to, 3 answer — and 1 pays",
+    chain:"the chain: 400 → 12 → 3 → 1, every day",
+    body: barsHTML([
+      { k:"signals scored", v:400, tone:"green" },
+      { k:"letters written", v:12, tone:"blue"  },
+      { k:"replied",         v:3,  tone:"red"   },
+      { k:"paid",            v:1,  tone:"amber", outline:true }
+    ]),
+    foot:"this is the only block that produces a conversation · the other four produce files"
+  },
+  {
+    span:"48–60", label:"The clock · closes it", tone:"green",
+    right:"Haiku batch · " + money(costPerDay(ROLES[9])),
+    h3:"Three numbers in, one line into the root, 400 aimed differently",
+    chain:"the chain: 3 numbers → 1 patch → tomorrow's 400",
+    body: chainSVG({
+      w:520, h:190, alt:"Three counted numbers — conversations, replies, paid — become one patched line in ROOT.md, which narrows tomorrow's scoring filter.",
+      cols:[
+        { x:30,  w:170, nodes:[
+            { lines:["conversations"], tone:"blue",  value:"3" },
+            { lines:["replies"],       tone:"blue",  value:"3" },
+            { lines:["paid"],          tone:"amber", value:"1" }
+        ]},
+        { x:330, w:180, nodes:[{ lines:["one line into ROOT.md"], tone:"amber" }] }
+      ],
+      extra: loopLabel
+    }),
+    foot:"without this line, day 30 hunts exactly the way day 1 did"
+  },
+  {
+    span:"THE HONEST PART", label:"What the hour does not buy", tone:"amber", plainSpan:true,
+    right:"read this one",
+    h3:"The machine hunts at the same speed either way",
+    chain:"the offer is the one variable it cannot set",
+    body: chainSVG({
+      w:520, h:158, pair:true,
+      alt:"An offer that lands and an offer that does not both compound at four hundred letters a day — into a business, or into twelve thousand ignored letters.",
+      cols:[
+        { x:8,   w:180, nodes:[
+            { lines:["an offer that lands"],    tone:"green" },
+            { lines:["an offer that does not"], tone:"mute"  }
+        ]},
+        { x:320, w:192, nodes:[
+            { lines:["400 a day compound","into a business"], tone:"green" },
+            { lines:["400 a day compound","into 12,000 ignored letters"], tone:"red", dashed:true }
+        ]}
+      ],
+      extra:'<text x="260" y="150" font-size="10" text-anchor="middle" fill="#7d7566">'+
+            'same hour, same '+perDay+' a day, same 30 mornings — only the first twelve minutes differ</text>'
+    }),
+    foot:"minutes 0–60 are under your control · every minute after is not"
+  }];
+}
+
+function buildHour(){
+  var host = document.getElementById("hourGrid");
+  hourCards().forEach(function(c, i){
+    var card = el("div","card hour-card");
+    card.style.setProperty("--rail","var(--"+c.tone+")");
+    card.innerHTML =
+      '<div class="ghost">'+(i < 5 ? "0"+(i+1) : "&times;")+'</div>'+
+      '<div class="card-head">'+
+        (c.plainSpan
+          ? '<span class="tag" style="--tone:var(--amber)">'+esc(c.span)+'</span><span class="tag-plain">'+esc(c.label)+'</span>'
+          : '<span class="tag" style="--tone:var(--'+c.tone+')">'+esc(c.span)+'</span><span class="tag-plain">'+esc(c.label)+'</span>')+
+        '<span class="tag-right" style="--tone:var(--'+c.tone+')">'+esc(c.right)+'</span>'+
+      '</div>'+
+      '<h3>'+esc(c.h3)+'</h3>'+
+      '<span class="chain-chip" style="--tone:var(--'+c.tone+')">'+esc(c.chain)+'</span>'+
+      c.body+
+      '<p class="foot">'+esc(c.foot)+'</p>';
+    host.appendChild(card);
+  });
+}
+
+/* =======================================================================
+   shared control builder
+   ======================================================================= */
+function buildControls(host, defs, onChange){
+  var state = {};
+  defs.forEach(function(d){
+    state[d.k] = d.def;
+    var box = el("div","ctl");
+    var lab = el("label");
+    lab.innerHTML = esc(d.label) + '<span class="val" id="v-'+d.k+'"></span>';
+    box.appendChild(lab);
+    var input = document.createElement("input");
+    input.type = "range";
+    input.min = d.min; input.max = d.max; input.step = d.step; input.value = d.def;
+    input.setAttribute("aria-label", d.label);
+    input.addEventListener("input", function(){
+      state[d.k] = parseFloat(input.value);
+      document.getElementById("v-"+d.k).textContent = d.fmt(state[d.k]);
+      onChange(state);
+    });
+    box.appendChild(input);
+    host.appendChild(box);
+    document.getElementById("v-"+d.k).textContent = d.fmt(d.def);
+  });
+  onChange(state);
+  return state;
+}
+
+/* =======================================================================
+   PANEL 3 — the money
+   ======================================================================= */
+function buildMoney(){
+  var tokenMonth = totalPerDay() * DAYS;
+
+  var defs = [
+    { k:"clients", label:"clients signed",     min:0, max:25,    step:1,   def:10,   fmt:function(v){ return v + (v===1?" client":" clients"); } },
+    { k:"price",   label:"per client / month", min:500, max:20000, step:250, def:8000, fmt:function(v){ return money(v,0); } },
+    { k:"ads",     label:"ad spend / month",   min:0, max:20000, step:250, def:6000, fmt:function(v){ return money(v,0); } },
+    { k:"hours",   label:"your hours / week",  min:0, max:80,    step:1,   def:45,   fmt:function(v){ return v + " h"; } },
+    { k:"rate",    label:"your hour, priced",  min:0, max:300,   step:5,   def:75,   fmt:function(v){ return v===0 ? "unpaid" : money(v,0)+"/h"; } },
+    { k:"fee",     label:"payment fees",       min:0, max:6,     step:0.1, def:2.9,  fmt:function(v){ return v.toFixed(1)+"%"; } },
+    { k:"tax",     label:"tax on what's left", min:0, max:50,    step:1,   def:30,   fmt:function(v){ return v+"%"; } }
+  ];
+
+  buildControls(document.getElementById("moneyControls"), defs, function(s){
+    var revenue = s.clients * s.price;
+    var fees    = revenue * s.fee / 100;
+    var labour  = s.hours * 4.33 * s.rate;
+    var beforeTax = revenue - tokenMonth - s.ads - fees - labour;
+    var tax     = Math.max(0, beforeTax) * s.tax / 100;
+    var left    = beforeTax - tax;
+
+    var rows = [
+      { k:"ten clients × price", n:"the line in the headline", v:revenue,     tone:"amber",  sign:1 },
+      { k:"tokens",              n:"the only row the file writes", v:tokenMonth, tone:"green", sign:-1 },
+      { k:"ad spend",            n:"how the 400 reach anyone", v:s.ads, tone:"red", sign:-1 },
+      { k:"payment fees",        n:"on every dollar collected", v:fees,       tone:"red",    sign:-1 },
+      { k:"your hours, priced",  n:Math.round(s.hours*4.33)+" h a month", v:labour, tone:"red", sign:-1 },
+      { k:"tax",                 n:"on what survived the rows above", v:tax,   tone:"red",    sign:-1 }
+    ];
+    var scale = Math.max(revenue, 1);
+
+    var out = "";
+    rows.forEach(function(r){
+      out += '<div class="wf-row" style="--tone:'+(r.sign<0?"var(--mute)":"var(--amber)")+'">'+
+               '<div class="wf-lab">'+esc(r.k)+'<small>'+esc(r.n)+'</small></div>'+
+               '<div class="wf-bar"><div class="wf-fill" style="width:'+
+                 Math.min(100, r.v/scale*100).toFixed(2)+'%;background:'+TONE[r.tone]+';opacity:'+(r.sign<0?0.5:0.9)+'"></div></div>'+
+               '<div class="wf-val">'+(r.sign<0?"−":"")+money(r.v,0)+'</div>'+
+             '</div>';
+    });
+    out += '<div class="wf-row total">'+
+             '<div class="wf-lab">what is actually left<small>after every row above</small></div>'+
+             '<div class="wf-bar"><div class="wf-fill" style="width:'+
+               Math.max(0, Math.min(100, left/scale*100)).toFixed(2)+'%;background:'+
+               (left>=0?TONE.amber:TONE.red)+'"></div></div>'+
+             '<div class="wf-val" style="color:'+(left>=0?"var(--amber)":"var(--red)")+'">'+money(left,0)+'</div>'+
+           '</div>';
+    document.getElementById("waterfall").innerHTML = out;
+
+    var costs = tokenMonth + s.ads + fees + labour;
+    var perHour = s.hours > 0 ? left / (s.hours * 4.33) : 0;
+    document.getElementById("moneyStats").innerHTML =
+      stat("the headline", money(revenue,0), "ten clients at " + money(s.price,0), "amber") +
+      stat("the file's share of costs", (costs>0 ? (tokenMonth/costs*100).toFixed(1) : "0") + "%",
+           money(tokenMonth,0) + " of " + money(costs,0), "green") +
+      stat("what is left", money(left,0), left >= 0 ? "after every row above" : "the offer does not cover the hour", left>=0?"amber":"red") +
+      stat("your hour, actually", s.hours>0 ? money(perHour,0)+"/h" : "—",
+           s.hours>0 ? "what the month paid you" : "set your hours above", "blue");
+  });
+}
+
+/* whole numbers stay whole; fractions keep one decimal */
+function num1(v){
+  if(v >= 10) return String(Math.round(v));
+  return Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1);
+}
+
+function stat(k, v, n, tone){
+  return '<div class="stat" style="--tone:var(--'+tone+')">'+
+           '<div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="n">'+esc(n)+'</div>'+
+         '</div>';
+}
+
+/* =======================================================================
+   PANEL 4 — the stack
+   ======================================================================= */
+var stackOverrides = {};
+
+function buildStack(){
+  var host = document.getElementById("stackRows");
+  ROLES.forEach(function(role){
+    var row = el("div","srow");
+    row.setAttribute("data-role", role.name);
+    if(role.key) row.setAttribute("data-key","true");
+    row.appendChild(el("div","pill", role.name));
+
+    var sel = document.createElement("select");
+    sel.setAttribute("aria-label", "model for " + role.name);
+    ["opus","sonnet","haiku"].forEach(function(t){
+      var o = document.createElement("option");
+      o.value = t; o.textContent = RATES[t].label;
+      if(t === role.tier) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", function(){
+      stackOverrides[role.name] = sel.value;
+      document.querySelectorAll("#stackPresets .preset").forEach(function(b){ b.setAttribute("aria-pressed","false"); });
+      renderStack();
+    });
+    var cell = el("div","sel");
+    cell.appendChild(sel);
+    if(role.batch) cell.appendChild(el("small", null, "batch · −50%"));
+    row.appendChild(cell);
+
+    var wrap = el("div","bar-wrap"); wrap.appendChild(el("div","bar")); row.appendChild(wrap);
+    row.appendChild(el("div","money"));
+    host.appendChild(row);
+  });
+
+  document.getElementById("rateTable").innerHTML = ["opus","sonnet","haiku"].map(function(t){
+    var r = RATES[t];
+    return '<tr><td style="color:'+r.hex+'">'+r.label+
+           '</td><td class="num">'+money(r.in,2)+'</td><td class="num">'+money(r.out,2)+
+           '</td><td class="num">'+r.ctx+'</td></tr>';
+  }).join("") +
+  '<tr><td style="color:var(--mute)">Batch API</td><td class="num" colspan="2" style="text-align:right;color:var(--mute)">−50% on both</td><td class="num" style="color:var(--mute)">—</td></tr>';
+
+  document.querySelectorAll("#stackPresets .preset").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var p = btn.getAttribute("data-preset");
+      stackOverrides = {};
+      if(p === "opus")  ROLES.forEach(function(r){ stackOverrides[r.name] = "opus"; });
+      if(p === "haiku") ROLES.forEach(function(r){ stackOverrides[r.name] = "haiku"; });
+      document.querySelectorAll("#stackPresets .preset").forEach(function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      document.querySelectorAll("#stackRows select").forEach(function(sel, i){
+        sel.value = stackOverrides[ROLES[i].name] || ROLES[i].tier;
+      });
+      renderStack();
+    });
+  });
+
+  renderStack();
+}
+
+function renderStack(){
+  var baseline = totalPerDay();
+  var day = totalPerDay(stackOverrides);
+  var peak = ROLES.reduce(function(m,r){ return Math.max(m, costPerDay(r,"opus")); }, 0);
+
+  ROLES.forEach(function(role, i){
+    var tier = stackOverrides[role.name] || role.tier;
+    var c = costPerDay(role, tier);
+    var row = document.querySelectorAll("#stackRows .srow")[i];
+    row.style.setProperty("--tone", RATES[tier].tone);
+    row.querySelector(".bar").style.width = (c / peak * 100) + "%";
+    row.querySelector(".money").textContent = money(c);
+  });
+
+  document.getElementById("stackDay").textContent   = money(day) + " a day";
+  document.getElementById("stackMonth").textContent = money(day * DAYS, 0);
+  var diff = day / baseline;
+  document.getElementById("stackDelta").textContent =
+    Math.abs(diff - 1) < 0.005 ? "as written"
+      : diff > 1 ? (diff.toFixed(1) + "× the written routing")
+                 : ("−" + Math.round((1-diff)*100) + "% — and the two gates got cheaper too");
+}
+
+/* =======================================================================
+   PANEL 5 — the hunt
+   ======================================================================= */
+function buildHunt(){
+  var tokenDay = totalPerDay();
+
+  var defs = [
+    { k:"signals", label:"signals scored / day", min:50,  max:1200, step:25,  def:400, fmt:function(v){ return v + " a day"; } },
+    { k:"write",   label:"worth writing to",     min:0.5, max:25,   step:0.5, def:3,   fmt:function(v){ return v + "%"; } },
+    { k:"reply",   label:"reply rate",           min:0,   max:60,   step:1,   def:25,  fmt:function(v){ return v + "%"; } },
+    { k:"close",   label:"replies that pay",     min:0,   max:100,  step:1,   def:33,  fmt:function(v){ return v + "%"; } }
+  ];
+
+  buildControls(document.getElementById("huntControls"), defs, function(s){
+    var written = s.signals * s.write / 100;
+    var replied = written * s.reply / 100;
+    var paid    = replied * s.close / 100;
+
+    document.getElementById("huntFunnel").innerHTML = [
+      { k:"signals scored",  n:"the scout, always on",        v:s.signals, tone:"green" },
+      { k:"letters written", n:"copywriter + account manager",v:written,   tone:"blue"  },
+      { k:"replied",         n:"a human answered",            v:replied,   tone:"red"   },
+      { k:"paid",            n:"the only row that is revenue",v:paid,      tone:"amber" }
+    ].map(function(r){
+      return '<div class="wf-row" style="--tone:'+TONE[r.tone]+'">'+
+               '<div class="wf-lab">'+esc(r.k)+'<small>'+esc(r.n)+'</small></div>'+
+               '<div class="wf-bar"><div class="wf-fill" style="width:'+
+                 Math.max(0.6, r.v/s.signals*100).toFixed(2)+'%;background:'+TONE[r.tone]+'"></div></div>'+
+               '<div class="wf-val" style="color:'+TONE[r.tone]+'">'+
+                 num1(r.v)+'</div>'+
+             '</div>';
+    }).join("");
+
+    var perMonth = paid * DAYS;
+    var daysToTen = paid > 0 ? Math.ceil(10 / paid) : Infinity;
+    var lettersEach = paid > 0 ? Math.round(written / paid) : Infinity;
+
+    document.getElementById("huntStats").innerHTML =
+      stat("clients a month", perMonth >= 1 ? perMonth.toFixed(1) : perMonth.toFixed(2),
+           "at " + (paid >= 1 ? num1(paid) : paid.toFixed(2)) + " a day", "amber") +
+      stat("days to ten clients", isFinite(daysToTen) ? String(daysToTen) : "never",
+           isFinite(daysToTen) ? (daysToTen <= 30 ? "inside one month" : Math.round(daysToTen/30*10)/10 + " months") : "the last slider is at zero", "blue") +
+      stat("letters per paying client", isFinite(lettersEach) ? lettersEach.toLocaleString("en-US") : "∞",
+           "written and sent", "red") +
+      stat("token cost per client", paid > 0 ? money(tokenDay / paid) : "—",
+           paid > 0 ? "the whole roster, divided" : "no clients to divide by", "green");
+
+    document.getElementById("scenarioTable").innerHTML = [
+      { lab:"1 in 3 replies — as drawn",     r:1/3  },
+      { lab:"1 in 10 replies — a good month", r:0.1  },
+      { lab:"1 in 30 replies — cold outreach", r:1/30 }
+    ].map(function(sc){
+      var p = replied * sc.r, mo = p * DAYS;
+      var d = p > 0 ? Math.ceil(10/p) : Infinity;
+      return '<tr><td>'+esc(sc.lab)+'</td>'+
+             '<td class="num">'+(mo >= 1 ? mo.toFixed(1) : mo.toFixed(2))+'</td>'+
+             '<td class="num">'+(isFinite(d) ? d : "—")+'</td>'+
+             '<td class="num">'+(p > 0 ? Math.round(written/p).toLocaleString("en-US") : "—")+'</td></tr>';
+    }).join("");
+  });
+}
+
+/* =======================================================================
+   PANEL 6 — the file
+   ======================================================================= */
+var FILE_LINES = [
+  ["# BRIEF.md — read at minute 0 of every hour","hd"],
+  ["",""],
+  ["## the three lines            <- the only part you write","hd"],
+  ["who:    independent gyms, 1–3 locations, owner answers the phone","hi"],
+  ["change: 30 new trial members a month, or the month is free","hi"],
+  ["price:  $8,000/mo, 90-day term, link at /start — no call required","hi"],
+  ["",""],
+  ["## the clock","hd"],
+  ["00–12  the brief        re-read those three lines, nothing else","ky"],
+  ["12–24  strategy         Opus 5 writes ONE page from them","ky"],
+  ["24–36  production       three Sonnet 5 branches, four files out","ky"],
+  ["36–48  distribution     score 400, write 12, send","ky"],
+  ["48–60  analytics        count 3 numbers, patch ROOT.md, stop","ky"],
+  ["",""],
+  ["## the roster           model        runs","hd"],
+  ["strategist              opus-5       once a week","st"],
+  ["QA critic               opus-5       every gate","st"],
+  ["copywriter              sonnet-5     constant","st"],
+  ["designer                sonnet-5     per artifact","st"],
+  ["account manager         sonnet-5     per reply","st"],
+  ["video scripter          sonnet-5     per script","st"],
+  ["media buyer             haiku-4-5    per campaign","st"],
+  ["scout                   haiku-4-5    always on","st"],
+  ["SEO                     haiku-4-5    nightly","st"],
+  ["analyst                 haiku-4-5    overnight, batch","st"],
+  ["",""],
+  ["## the gate","hd"],
+  ["nothing ships until the QA critic answers one question:",""],
+  ['  “does this quote the three lines, verbatim, at least once?”',"ky"],
+  ["no  -> back to production, once. twice -> stop and wake me.",""],
+  ["",""],
+  ["## the patch (minute 59)","hd"],
+  ["append ONE line to ROOT.md: conversations, replies, paid.",""],
+  ["tomorrow's scout reads it and narrows the filter. that is",""],
+  ["the entire learning loop. there is no other one.",""],
+  ["",""],
+  ["<!-- salaries: $0. tokens: $2.62/day at published rates.","cm"],
+  ["     the two are not the same sentence. -->","cm"]
+];
+
+function buildFile(){
+  var body = document.getElementById("fileBody");
+  body.innerHTML = FILE_LINES.map(function(l, i){
+    var cls = l[1] ? " c-" + l[1] : "";
+    return '<div class="ln"><span class="n">'+(i+1)+'</span>'+
+           '<span class="t'+cls+'">'+esc(l[0] || " ")+'</span></div>';
+  }).join("");
+
+  var btn = document.getElementById("copyFile");
+  btn.addEventListener("click", function(){
+    var text = FILE_LINES.map(function(l){ return l[0]; }).join("\n");
+    var done = function(ok){
+      btn.textContent = ok ? "copied" : "select and copy";
+      setTimeout(function(){ btn.textContent = "copy the file"; }, 1800);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(false); });
+    } else { done(false); }
+  });
+}
+
+/* =======================================================================
+   navigation
+   ======================================================================= */
+var HINTS = [
+  ["the roster",   "the roster is nearly free · the profit line is arithmetic, not a forecast"],
+  ["the hour",     "five blocks of twelve minutes · and one card that is not a block"],
+  ["the money",    "one multiplication, four subtractions the file never performs"],
+  ["the stack",    "move any role to any model · the bill is recomputed from tokens"],
+  ["the hunt",     "the only block facing outward · the last number is the offer's"],
+  ["the file",     "thirty-eight lines · three of them are the business"]
+];
+
+function goTo(n){
+  document.querySelectorAll(".panel").forEach(function(p){
+    p.setAttribute("data-active", p.getAttribute("data-panel") === String(n) ? "true" : "false");
+  });
+  document.querySelectorAll(".step").forEach(function(b){
+    b.setAttribute("aria-current", b.getAttribute("data-go") === String(n) ? "true" : "false");
+  });
+  document.getElementById("stepHint").innerHTML =
+    "<b>" + esc(HINTS[n-1][0]) + "</b> — " + esc(HINTS[n-1][1]);
+  try{ if(location.hash !== "#" + n) history.replaceState(null, "", "#" + n); }catch(e){}
+}
+
+function buildNav(){
+  document.querySelectorAll(".step").forEach(function(b){
+    b.addEventListener("click", function(){ goTo(+b.getAttribute("data-go")); });
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+    var cur = +(document.querySelector('.step[aria-current="true"]') || {getAttribute:function(){return 1;}}).getAttribute("data-go");
+    if(e.key === "ArrowRight" && cur < 6){ goTo(cur + 1); e.preventDefault(); }
+    if(e.key === "ArrowLeft"  && cur > 1){ goTo(cur - 1); e.preventDefault(); }
+  });
+  var start = parseInt((location.hash || "").slice(1), 10);
+  goTo(start >= 1 && start <= 6 ? start : 1);
+}
+
+/* ---------- go ---------- */
+buildRoster();
+buildRadial();
+buildHour();
+buildMoney();
+buildStack();
+buildHunt();
+buildFile();
+buildNav();
+
+})();
+</script>
