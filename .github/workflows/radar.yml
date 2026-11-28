@@ -2,7 +2,7 @@ name: Drop Radar
 
 on:
   schedule:
-    - cron: '0 * * * *'      # every hour (UTC; GitHub may delay it a few minutes)
+    - cron: '17 * * * *'     # hourly UTC, away from the busy top of the hour; best effort
   workflow_dispatch:          # adds a manual "Run workflow" button for testing
 
 permissions:
@@ -14,13 +14,22 @@ concurrency:
 
 jobs:
   scan:
+    # A manual run from a feature branch must not send production notifications.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Resolve main after acquiring concurrency, not the queued event's old SHA.
+          ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Check scan interval and saved deduplication state
+        run: node scripts/radar-health.cjs start
 
       - name: Scan and push
         env:
@@ -29,9 +38,34 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node radar.js
 
+      - name: Record successful scan process
+        run: node scripts/radar-health.cjs success
+
       - name: Persist state
+        id: persist
         run: |
+          mkdir -p "$RUNNER_TEMP/radar-recovery"
+          cp state.json radar-health.json "$RUNNER_TEMP/radar-recovery/"
           git config user.name "drop-radar"
           git config user.email "drop-radar@users.noreply.github.com"
-          git add state.json
-          git diff --staged --quiet || (git commit -m "update radar state [skip ci]" && git push)
+          git add state.json radar-health.json
+          if ! git diff --staged --quiet; then
+            git commit -m "update radar state [skip ci]"
+            # Retry only persistence after unrelated main updates, never notifications.
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+            done
+            exit 1
+          fi
+
+      - name: Retain state for recovery if persistence failed
+        if: failure() && steps.persist.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: radar-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/radar-recovery/
+          retention-days: 7
